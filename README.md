@@ -32,7 +32,7 @@ See `.env.example`. Minimum required for auth/API features:
 
 - **Public**: `/`, `/legal/*`, `/contact`, `/auth/*`
 - **Authed**: `/dashboard`, `/settings` (protected by middleware)
-- **Admin**: `/admin`, `/admin/privacy-requests` (protected by middleware + admin checks)
+- **Admin**: `/admin`, `/admin/privacy-requests`, `/admin/audit-logs` (protected by middleware + admin checks)
 - **Packs**: `/packs/*` (feature-flagged)
 
 ## Packs (feature flags)
@@ -78,6 +78,13 @@ npm run test
 
 CI runs on GitHub Actions via `.github/workflows/ci.yml`.
 
+### Continuous security hygiene (baseline)
+
+- **Dependabot**: `.github/dependabot.yml` (weekly updates)
+- **CodeQL**: `.github/workflows/codeql.yml` (static analysis)
+- **Secret guardrail**: `scripts/secret-scan.sh` is run in CI to catch obvious service-role key leakage
+- **Reporting**: see `SECURITY.md`
+
 ## “Start a new idea” module guide
 
 When you have a new product idea, don’t fork the whole repo. Add a module:
@@ -104,4 +111,16 @@ When you have a new product idea, don’t fork the whole repo. Add a module:
   - Roll forward with a new migration when possible (preferred)
   - If rollback is required, restore from backup into a fresh environment and re-point
 - Capture an audit trail for admin-only changes when relevant
+
+### If you suspect a security incident
+
+1. **Detect**: check error tracking/logs, admin audit logs (`/admin/audit-logs`), and recent deploys.
+2. **Contain**:
+   - rotate exposed secrets immediately (especially `SUPABASE_SERVICE_ROLE_KEY`)
+   - disable affected features (feature flags / maintenance mode)
+   - revoke/rotate tokens if auth compromise is suspected
+3. **Recover**:
+   - ship a patch + migration (roll-forward preferred)
+   - restore from backup into a clean environment only if necessary
+4. **Learn**: add a regression test and a guardrail so it doesn’t happen twice.
 

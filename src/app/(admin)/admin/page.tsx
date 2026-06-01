@@ -37,6 +37,14 @@ export default function AdminHomePage() {
                 Open privacy request queue
               </Link>
             </div>
+            <div>
+              <Link
+                href="/admin/audit-logs"
+                className="font-medium text-zinc-950 hover:underline dark:text-zinc-50"
+              >
+                Open audit logs
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
