@@ -80,7 +80,6 @@ CI runs on GitHub Actions via `.github/workflows/ci.yml`.
 
 ### Continuous security hygiene (baseline)
 
-- **Dependabot**: `.github/dependabot.yml` (weekly updates)
 - **CodeQL**: `.github/workflows/codeql.yml` (static analysis)
 - **Secret guardrail**: `scripts/secret-scan.sh` is run in CI to catch obvious service-role key leakage
 - **Reporting**: see `SECURITY.md`
