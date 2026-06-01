@@ -1,0 +1,22 @@
+---
+description: Gate new product work — ask utility vs SaaS and set PRODUCT_MODE before coding
+alwaysApply: true
+---
+
+# New idea gate (EXOSKELETON)
+
+Before implementing any **new product feature or route** in this repo, STOP and ask the user:
+
+1. **Does this product have user-owned state?** (saved data, accounts, billing, roles, per-user moderation)
+2. If **no** (stateless utility / toy):
+   - Set `NEXT_PUBLIC_PRODUCT_MODE=utility` in `.env.local` (confirm with user).
+   - Do **not** add sign-in flows, profiles, dashboard links, account settings, or billing unless explicitly requested.
+   - Build under `src/app/(public)/...` (e.g. tools, converters).
+   - Supabase auth is optional; prefer anonymous usage + rate limits on API routes if needed.
+3. If **yes**:
+   - Ask archetype: `saas` | `community` | `marketplace` | `internal`.
+   - Set `NEXT_PUBLIC_PRODUCT_MODE` accordingly and suggest matching packs (see `docs/NEW_IDEA.md`).
+   - Confirm `.env.local` before writing authenticated routes or APIs.
+4. Read `getProductProfile()` in `src/lib/flags/product.ts` — middleware and nav respect `authEnabled` / `adminEnabled`.
+
+Do not skip this gate because the repo contains auth pages by default; they may be disabled for the current idea.

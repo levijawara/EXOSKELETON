@@ -1,12 +1,18 @@
 import Link from "next/link";
 
+import { ProductModeBanner } from "@/components/ProductModeBanner";
+import { getProductProfile } from "@/lib/flags/product";
+
 export default function PublicLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const profile = getProductProfile();
+
   return (
     <div className="flex min-h-full flex-1 flex-col">
+      <ProductModeBanner />
       <header className="border-b border-zinc-200 bg-white/70 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/50">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-4">
           <Link
@@ -28,12 +34,14 @@ export default function PublicLayout({
             >
               Terms
             </Link>
-            <Link
-              href="/auth/sign-in"
-              className="text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
-            >
-              Sign in
-            </Link>
+            {profile.authEnabled ? (
+              <Link
+                href="/auth/sign-in"
+                className="text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+              >
+                Sign in
+              </Link>
+            ) : null}
           </nav>
         </div>
       </header>

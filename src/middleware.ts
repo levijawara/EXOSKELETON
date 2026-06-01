@@ -5,6 +5,7 @@ import {
   resolveRole,
   toAuthUser,
 } from "@/lib/auth/supabase";
+import { getProductProfile } from "@/lib/flags/product";
 
 function addSecurityHeaders(res: NextResponse) {
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -26,10 +27,7 @@ export async function middleware(req: NextRequest) {
   addSecurityHeaders(res);
   res.headers.set("X-Request-Id", crypto.randomUUID());
 
-  if (process.env.SKIP_AUTH === "true") {
-    return res;
-  }
-
+  const profile = getProductProfile();
   const pathname = req.nextUrl.pathname;
   const isAppRoute =
     pathname === "/dashboard" ||
@@ -37,6 +35,23 @@ export async function middleware(req: NextRequest) {
     pathname === "/settings" ||
     pathname.startsWith("/settings/");
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  if (!profile.authEnabled) {
+    if (isAppRoute || isAdminRoute) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    return res;
+  }
+
+  if (isAdminRoute && !profile.adminEnabled) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
 
   if (isAppRoute || isAdminRoute) {
     // Fast path: if there is clearly no auth cookie, avoid the Supabase network roundtrip.

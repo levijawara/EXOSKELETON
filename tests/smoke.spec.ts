@@ -1,5 +1,20 @@
 import { test, expect } from "@playwright/test";
 
+function authEnabledInTestEnv(): boolean {
+  const mode = process.env.NEXT_PUBLIC_PRODUCT_MODE?.trim().toLowerCase();
+  if (mode === "utility") return false;
+  if (
+    !mode &&
+    process.env.SKIP_AUTH &&
+    ["1", "true", "yes", "on"].includes(process.env.SKIP_AUTH.toLowerCase())
+  ) {
+    return false;
+  }
+  return true;
+}
+
+const authEnabled = authEnabledInTestEnv();
+
 test("home renders", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByText("Build the bureaucracy once.")).toBeVisible();
@@ -10,14 +25,27 @@ test("legal privacy page renders", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Privacy Policy" })).toBeVisible();
 });
 
-test("dashboard redirects to sign-in when logged out", async ({ page }) => {
-  await page.goto("/dashboard");
-  await expect(page).toHaveURL(/\/auth\/sign-in/);
+test.describe("auth gating (saas mode)", () => {
+  test.skip(!authEnabled, "Auth redirect tests require NEXT_PUBLIC_PRODUCT_MODE != utility");
+
+  test("dashboard redirects to sign-in when logged out", async ({ page }) => {
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/auth\/sign-in/);
+  });
+
+  test("admin redirects to sign-in when logged out", async ({ page }) => {
+    await page.goto("/admin");
+    await expect(page).toHaveURL(/\/auth\/sign-in/);
+  });
 });
 
-test("admin redirects to sign-in when logged out", async ({ page }) => {
-  await page.goto("/admin");
-  await expect(page).toHaveURL(/\/auth\/sign-in/);
+test.describe("utility mode", () => {
+  test.skip(authEnabled, "Utility redirect tests require NEXT_PUBLIC_PRODUCT_MODE=utility");
+
+  test("dashboard redirects home when auth disabled", async ({ page }) => {
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/$/);
+  });
 });
 
 test.describe("integration (optional)", () => {

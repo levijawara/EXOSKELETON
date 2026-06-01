@@ -85,14 +85,32 @@ CI runs on GitHub Actions via `.github/workflows/ci.yml`.
 - **Secret guardrail**: `scripts/secret-scan.sh` is run in CI to catch obvious service-role key leakage
 - **Reporting**: see `SECURITY.md`
 
+## Start a new idea (auth toggle first)
+
+**One question:** Does this product have **user-owned state** (accounts, saved data, billing, roles)?
+
+| If… | Set `NEXT_PUBLIC_PRODUCT_MODE` | Auth | Admin | Typical packs |
+|-----|----------------------------------|------|-------|----------------|
+| Stateless tool (converter, transcriber) | `utility` | off | off | none |
+| SaaS with accounts | `saas` | on | on | billing optional |
+| Community / UGC | `community` | on | on | `NEXT_PUBLIC_PACK_UGC=true` |
+| Marketplace | `marketplace` | on | on | billing + files |
+| Internal admin tool | `internal` | on | on | none |
+
+**Example — audio-to-text toy (no sign-in):** set `NEXT_PUBLIC_PRODUCT_MODE=utility` in `.env.local`, then build under `src/app/(public)/...` (no dashboard, no account flows).
+
+See [docs/NEW_IDEA.md](docs/NEW_IDEA.md) for the full questionnaire and a copy-paste Cursor prompt.
+
+Profile logic lives in [`src/lib/flags/product.ts`](src/lib/flags/product.ts).
+
 ## “Start a new idea” module guide
 
-When you have a new product idea, don’t fork the whole repo. Add a module:
+When you have a new product idea, don’t fork the whole repo. **Set product mode first**, then add a module:
 
-1. Add a new route tree under `src/app/(packs)/packs/<yourPack>/...`
-2. Add a flag in `src/lib/flags/packs.ts`
-3. Add migrations under `supabase/migrations/` (prefixed, e.g. `0002_<yourPack>.sql`)
-4. Add a link card in `/packs`
+1. Add a new route tree under `src/app/(public)/...` (utility) or `src/app/(packs)/packs/<yourPack>/...`
+2. Add a flag in `src/lib/flags/packs.ts` if needed
+3. Add migrations under `supabase/migrations/` (prefixed, e.g. `0002_<yourPack>.sql`) when you persist user data
+4. Add a link card on the home page or `/packs`
 5. Add 1 smoke test proving the route renders
 
 ## Deployment + rollback runbook (minimum viable)
